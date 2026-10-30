@@ -169,6 +169,14 @@ def evaluate_split(cfg: Config, ds: Dataset, split: str, pipe: Pipeline | None =
     return recs, aggregate(cfg, recs)
 
 
+def log_test_run(config_name: str, config_key: str) -> int:
+    """Record one evaluation on the test split; returns the running total."""
+    TEST_RUNS_LOG.parent.mkdir(exist_ok=True)
+    with TEST_RUNS_LOG.open("a", encoding="utf-8") as f:
+        f.write(json.dumps({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "config": config_name, "config_key": config_key}) + "\n")
+    return sum(1 for _ in TEST_RUNS_LOG.open(encoding="utf-8"))
+
+
 def _fmt(m: dict) -> str:
     keys = ["precision@1", "precision@4", "recall@1", "recall@4", "recall@8", "doc_hit@4", "hit@4", "mrr",
             "answer_rate", "correct_abstain_rate", "abstain_balanced_acc", "e2e_recall@4"]
@@ -198,10 +206,7 @@ def main():
     if args.json:
         Path(args.json).write_text(json.dumps(m, indent=2), encoding="utf-8")
     if args.split == "test":  # count every look at the test set
-        TEST_RUNS_LOG.parent.mkdir(exist_ok=True)
-        with TEST_RUNS_LOG.open("a", encoding="utf-8") as f:
-            f.write(json.dumps({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "config": args.config, "config_key": cfg.key()}) + "\n")
-        n = sum(1 for _ in TEST_RUNS_LOG.open(encoding="utf-8"))
+        n = log_test_run(args.config, cfg.key())
         print(f"(test split evaluated {n} time(s) so far; logged in {TEST_RUNS_LOG})")
 
 
