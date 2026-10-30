@@ -75,10 +75,10 @@ class Pipeline:
         self.boilerplate = fit_boilerplate(fit_queries or [], cfg)
 
     # -- query processing
-    def _query_terms(self, question: str) -> dict[str, float]:
+    def _query_terms(self, question: str, expand: bool = True) -> dict[str, float]:
         cfg = self.cfg
         terms = {t: 1.0 for t in tokenize(question, cfg.stopwords, cfg.stem) if t not in self.boilerplate}
-        if cfg.expansion == "legal":
+        if expand and cfg.expansion == "legal":
             for t in tokenize(expand_query(question), cfg.stopwords, cfg.stem):
                 if t not in terms and t not in self.boilerplate:
                     terms[t] = cfg.expansion_weight
@@ -107,8 +107,14 @@ class Pipeline:
         terms = self._query_terms(question)
 
         s_bm25 = self.bm25.score(terms)
-        bound = self.bm25.upper_bound(terms)
-        chunk_conf = float(s_bm25.max() / bound) if bound > 0 else 0.0
+        if cfg.abstain_basis == "original" and cfg.expansion != "none":
+            # confidence must reflect what the user asked, not the synonyms we added
+            o_terms = self._query_terms(question, expand=False)
+            o_bound = self.bm25.upper_bound(o_terms)
+            chunk_conf = float(self.bm25.score(o_terms).max() / o_bound) if o_bound > 0 else 0.0
+        else:
+            bound = self.bm25.upper_bound(terms)
+            chunk_conf = float(s_bm25.max() / bound) if bound > 0 else 0.0
 
         parts: list[tuple[float, np.ndarray]] = []
         if cfg.method in ("bm25", "hybrid"):

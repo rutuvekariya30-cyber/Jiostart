@@ -51,6 +51,7 @@ class Config:
     dedupe_overlap: float = 0.5  # drop a hit if >= this fraction of it overlaps an already chosen hit (>1 = off)
 
     # abstention
+    abstain_basis: str = "original"  # original | expanded: query terms behind the chunk confidence score
     abstain_signal: str = "chunk"  # chunk | chunk+doc
     abstain_chunk: float = 0.0  # abstain when normalised best-chunk BM25 is below this
     abstain_doc: float = 0.0  # ... or when normalised doc-routing score is below this (chunk+doc only)
