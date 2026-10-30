@@ -1,0 +1,9 @@
+numpy
+scipy
+scikit-learn
+pyyaml
+nltk
+huggingface_hub
+streamlit
+pytest
+# optional, only for the dense retriever: fastembed

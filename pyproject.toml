@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cir"
+version = "0.1.0"
+description = "Contract clause retrieval with abstention, evaluated on LegalBench-RAG (CUAD mini)"
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "scikit-learn", "pyyaml", "nltk", "huggingface_hub"]
+
+[project.optional-dependencies]
+app = ["streamlit"]
+dense = ["fastembed"]
+dev = ["pytest"]
+
+[project.scripts]
+cir = "cir.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
